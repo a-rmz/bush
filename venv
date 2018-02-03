@@ -1,0 +1,31 @@
+#!/bin/bash
+
+deactivate() {
+  # reset old environment variables
+  # ! [ -z ${VAR+_} ] returns true if VAR is declared at all
+  if ! [ -z "${_OLD_VIRTUAL_PATH+_}" ] ; then
+    PATH="$_OLD_VIRTUAL_PATH"
+    export PATH
+    unset _OLD_VIRTUAL_PATH
+  fi
+
+  # This should detect bash and zsh, which have a hash command that must
+  # be called to get it to forget past commands.  Without forgetting
+  # past commands the $PATH changes we made may not be respected
+  if [ -n "${BASH-}" ] || [ -n "${ZSH_VERSION-}" ] ; then
+    hash -r 2>/dev/null
+  fi
+
+  unset VIRTUAL_ENV
+  if [ ! "${1-}" = "nondestructive" ] ; then
+    # Self destruct!
+    unset -f deactivate
+  fi
+}
+
+VIRTUAL_ENV="bush-dev"
+export VIRTUAL_ENV
+
+_OLD_VIRTUAL_PATH="$PATH"
+PATH="$(pwd)/build:$PATH"
+export PATH
