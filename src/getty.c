@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include "utils/io.h"
 #include "utils/types.h"
 
-#define puts(x) printf("%s\n", x)
+// define the location of the
+// sh executable
+#define SH_BIN "bin/sh"
 
 bool login(char*, char*, char*);
 
@@ -18,6 +22,17 @@ int main(int argc, char ** argv) {
 
   if(valid) {
     puts("Sucessfully logged in");
+
+    int status;
+    pid_t pid = fork();
+    // exec sh on child
+    if(pid == 0) {
+      execl(SH_BIN, "sh", NULL);
+    // wait on parent
+    } else {
+      wait(&status);
+      puts("Goodbye, human!");
+    }
   } else {
     puts("Please enter valid credentials");
   }
