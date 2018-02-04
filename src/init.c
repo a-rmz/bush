@@ -46,7 +46,7 @@ int main(int argc, char ** argv) {
                     //TODO condicion para recibir estado de error y iniciar procedimiento de shutdown
                     //TODO investigar SIGTERM y SIGKILL
 
-                    //TODO extraer a metodo independiente para evitar repetir codigo?
+                    //TODO extraer a metodo independiente para evitar repetir codigo:
                     //Si no hace falta hacer shutdown se crea proceso nuevo
                     pid = fork();
                     if(pid == 0){
