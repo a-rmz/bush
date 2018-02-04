@@ -1,35 +1,29 @@
-
 CC = gcc
 FLAGS = -c
 
 SRC = src
-BUILD = build
+BUILD = bin
 
 INIT = init
 GETTY = getty
 SH = sh
 
-SOURCES = $(wildcard $(SRC)/*.c)
-OBJECTS = $(patsubst $(SRC)/%.c, $(BUILD)/%.o, $(SOURCES))
+# SOURCES = $(shell find . -name *.c)
+# OBJECTS = $(patsubst $(SRC)/%.c, $(BUILD)/%.o, $(SOURCES))
 
-all: init getty sh
+all: dir getty init sh
 
-init: dir $(BUILD)/$(INIT)
+init: $(SRC)/init.c
+	$(CC) $^ -o $(BUILD)/$(INIT)
 
-getty: dir $(BUILD)/$(GETTY)
+sh: $(SRC)/sh.c
+	$(CC) $^ -o $(BUILD)/$(SH)
 
-sh: dir $(BUILD)/$(SH)
+getty: $(SRC)/getty.c $(SRC)/utils/io.c
+	$(CC) $^ -o $(BUILD)/$(GETTY)
 
 dir:
 	mkdir -p $(BUILD)
 
-$(BUILD)/$(EXE): $(OBJECTS)
-	$(CC) $^ -o $@
-
-$(OBJECTS): $(BUILD)/%.o : $(SRC)/%.c
-	$(CC) $(FLAGS) $< -o $@
-
 clean:
-	rm -f $(BUILD)/*.o $(BUILD)/$(INIT)
-	rm -f $(BUILD)/*.o $(BUILD)/$(GETTY)
-	rm -f $(BUILD)/*.o $(BUILD)/$(SH)
+	rm -rf $(BUILD)/*

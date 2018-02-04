@@ -27,5 +27,5 @@ VIRTUAL_ENV="bush-dev"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
-PATH="$(pwd)/build:$PATH"
+PATH="$(pwd)/bin:$PATH"
 export PATH
