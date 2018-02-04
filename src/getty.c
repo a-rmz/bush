@@ -13,30 +13,34 @@
 bool login(char*, char*, char*);
 
 int main(int argc, char ** argv) {
-  puts("Hello to bush!"); 
+  // This will be changed to wait for an
+  // shutdown command
+  while(true) {
+    system("tput clear"); 
+    puts("Hello to bush!"); 
 
-  char * user = prompt("user: ");
-  char * password = prompt("password: ");
+    char * user = prompt("user: ");
+    char * password = prompt("password: ");
 
-  bool valid = login("passwd", user, password);
+    bool valid = login("passwd", user, password);
 
-  if(valid) {
-    puts("Sucessfully logged in");
+    if(valid) {
+      puts("Sucessfully logged in");
 
-    int status;
-    pid_t pid = fork();
-    // exec sh on child
-    if(pid == 0) {
-      execl(SH_BIN, "sh", NULL);
-    // wait on parent
+      int status;
+      pid_t pid = fork();
+      // exec sh on child
+      if(pid == 0) {
+        execl(SH_BIN, "sh", NULL);
+      // wait on parent
+      } else {
+        wait(&status);
+        puts("Goodbye, human!");
+      }
     } else {
-      wait(&status);
-      puts("Goodbye, human!");
+      puts("Please enter valid credentials");
     }
-  } else {
-    puts("Please enter valid credentials");
   }
-
   return 0;
 }
 
