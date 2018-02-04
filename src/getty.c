@@ -47,7 +47,6 @@ bool login(char * passwd_file, char * user, char * password) {
   };
 
   while((size = getline(&line, &len, f)) != -1) {
-    if(length != size) return false;
     if(strcmp(credentials, line) == 0) return true;
   }
 
