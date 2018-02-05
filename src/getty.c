@@ -6,7 +6,9 @@
 #include "utils/io.h"
 #include "utils/types.h"
 
-#define puts(x) printf("%s\n", x)
+// define the location of the
+// sh executable
+#define SH_BIN "bin/sh"
 
 bool login(char*, char*, char*);
 void handleSignal(int);
@@ -23,6 +25,7 @@ int main(int argc, char ** argv) {
   signal(SIGTERM,handleSignal);
 
   while(true){
+    system("tput clear");
     puts("Hello to bush!");
 
     char * user = prompt("user: ");
@@ -32,12 +35,16 @@ int main(int argc, char ** argv) {
 
     if(valid) {
       puts("Sucessfully logged in");
+<<<<<<< HEAD
+      int status;
       childrenPID=fork();
       if(childrenPID == 0){
-        execl("/usr/bin/sh", (char*)NULL);
+        // exec sh on child
+        execl(SH_BIN, "sh", NULL);
       } else{
-        puts("entered sh");
-        wait(NULL);
+        // wait on parent
+        wait(&status);
+        puts("Goodbye, human!");
       }
     } else {
       puts("Please enter valid credentials");
@@ -70,7 +77,6 @@ bool login(char * passwd_file, char * user, char * password) {
   };
 
   while((size = getline(&line, &len, f)) != -1) {
-    if(length != size) return false;
     if(strcmp(credentials, line) == 0) return true;
   }
 
