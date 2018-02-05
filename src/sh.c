@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 #include "utils/io.h"
 #include "utils/types.h"
 
@@ -18,11 +19,13 @@ typedef struct {
 } command;
 
 void set_path();
+void handleSignal(int);
 command * parse_input(char*);
 bool is_command(command*, char*);
 
 int main(int argc, char ** argv) {
   set_path();
+  signal(SIGTERM,handleSignal);
   while(true) {
     char * input = prompt(PS);
     command * c = parse_input(input);
@@ -67,4 +70,9 @@ command * parse_input(char * input) {
 
 bool is_command(command * c, char * str) {
   return strcmp(c->exec, str) == 0 ? true : false;
+}
+
+void handleSignal(int signal){
+  //TODO Handle exit properly
+  exit(EXIT_SUCCESS);
 }

@@ -35,7 +35,6 @@ int main(int argc, char ** argv) {
 
     if(valid) {
       puts("Sucessfully logged in");
-<<<<<<< HEAD
       int status;
       childrenPID=fork();
       if(childrenPID == 0){
@@ -85,5 +84,9 @@ bool login(char * passwd_file, char * user, char * password) {
 }
 
 void handleSignal(int signal){
+  int status;
 
+  kill(childrenPID,SIGTERM);
+  wait(&status);
+  exit(EXIT_SUCCESS);
 }
