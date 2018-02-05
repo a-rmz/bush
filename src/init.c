@@ -10,16 +10,19 @@
 // Children proceses to be created
 #define INTENDED_CHILDREN 6
 
+//PID array for keeping track of children
+pid_t * children;
+
 void terminationHandler(int);
 
 int main(int argc, char ** argv) {
-  //PID array for keeping track of children
-  //pid_t * children;
-  //children = malloc(INTENDED_CHILDREN * sizeof(pid_t));
+
+  children = malloc(INTENDED_CHILDREN * sizeof(pid_t));
   char* curentPid; //string representation of current PID
+
   //Control variables
   int i;
-  //int childen_tracker = 0;
+  int childen_tracker = 0;
   pid_t pid; //current process PID
   int status; //child process exit status
   bool shutdown = false;
@@ -29,6 +32,8 @@ int main(int argc, char ** argv) {
     pid = fork();
     if(pid == 0) {
       execl("/usr/bin/xterm","xterm","-e","./bin/getty",curentPid, (char*) NULL);
+    } else{
+      children[childen_tracker++] = pid;
     }
   }
 
@@ -37,14 +42,15 @@ int main(int argc, char ** argv) {
 
   //main loop
   while(!shutdown) {
-    if(waitpid(-1, &status, WNOHANG) > 0) {
-      //TODO check if double check is redundant
+    pid_t returnedPid;
+    if(returnedPid = (waitpid(-1, &status, WNOHANG)) > 0) {
       if(WIFEXITED(status)) {
-        //TODO properly check status to start shutdown procedure
-        //TODO investigar SIGTERM y SIGKILL
+        for(childen_tracker = 0; childen_tracker<INTENDED_CHILDREN; childen_tracker++){
+          if(children[childen_tracker] == returnedPid) break;
+        }
 
         //restart child process
-        pid = fork();
+        children[childen_tracker] = fork();
         if(pid == 0) {
           execl("/usr/bin/xterm","xterm","-e","./bin/getty",curentPid, (char*)NULL);
         } else {
@@ -56,5 +62,12 @@ int main(int argc, char ** argv) {
 }
 
 void terminationHandler(int signum){
-  printf("a\n");
+  for(childen_tracker = 0; childen_tracker<INTENDED_CHILDREN; childen_tracker++){
+    kill(children[childen_tracker],SIGTERM);
+  }
+  for(childen_tracker = 0; childen_tracker<INTENDED_CHILDREN; childen_tracker++){
+    wait(NULL);
+  }
+
+  exit(0);
 }

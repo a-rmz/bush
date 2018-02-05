@@ -9,6 +9,9 @@
 #define puts(x) printf("%s\n", x)
 
 bool login(char*, char*, char*);
+void handleSignal(int);
+
+pid_t childrenPID;
 
 int main(int argc, char ** argv) {
   pid_t initPid;
@@ -17,19 +20,30 @@ int main(int argc, char ** argv) {
   }else{
     exit(EXIT_FAILURE);
   }
-  puts("Hello to bush!");
+  signal(SIGTERM,handleSignal);
 
-  char * user = prompt("user: ");
-  char * password = prompt("password: ");
+  while(true){
+    puts("Hello to bush!");
 
-  bool valid = login("passwd", user, password);
+    char * user = prompt("user: ");
+    char * password = prompt("password: ");
 
-  if(valid) {
-    puts("Sucessfully logged in");
-    kill(initPid,SIGUSR1);
-  } else {
-    puts("Please enter valid credentials");
+    bool valid = login("passwd", user, password);
+
+    if(valid) {
+      puts("Sucessfully logged in");
+      childrenPID=fork();
+      if(childrenPID == 0){
+        execl("/usr/bin/sh", (char*)NULL);
+      } else{
+        puts("entered sh");
+        wait(NULL);
+      }
+    } else {
+      puts("Please enter valid credentials");
+    }
   }
+
 
   return 0;
 }
@@ -62,4 +76,8 @@ bool login(char * passwd_file, char * user, char * password) {
 
   free(line);
   return false;
+}
+
+void handleSignal(int signal){
+
 }
