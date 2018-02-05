@@ -16,7 +16,7 @@ all: dir getty init sh
 init: $(SRC)/init.c
 	$(CC) $^ -o $(BUILD)/$(INIT)
 
-sh: $(SRC)/sh.c
+sh: $(SRC)/sh.c $(SRC)/utils/io.c
 	$(CC) $^ -o $(BUILD)/$(SH)
 
 getty: $(SRC)/getty.c $(SRC)/utils/io.c
