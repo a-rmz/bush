@@ -8,7 +8,7 @@
 #include "utils/io.h"
 #include "utils/types.h"
 
-// define the location of the
+// Define the location of the
 // sh executable
 #define SH_BIN "bin/sh"
 
@@ -16,10 +16,13 @@ bool login(char*, char*, char*);
 void handleTermSignal(int);
 void handleSignal(int);
 
+// Parent PID made global for ease of use in the programm
 pid_t initPid;
 
 int main(int argc, char ** argv) {
 
+  //Parse parent PID from args
+  //Parent PID must be passed in args because of xterm
   pid_t childrenPID;
   if(argc > 1){
     initPid = atoi(argv[1]);
@@ -27,9 +30,11 @@ int main(int argc, char ** argv) {
     exit(EXIT_FAILURE);
   }
 
+  //string representation of current PID
   char curentPid[10];
   sprintf(curentPid,"%d",getpid());
 
+  // Activates monitors for SIGUSR1 and SIGTERM
   signal(SIGUSR1, handleSignal);
   signal(SIGTERM, handleTermSignal);
 
@@ -93,6 +98,7 @@ bool login(char * passwd_file, char * user, char * password) {
   return false;
 }
 
+// Upon recieving SIGTERM kills children processes
 void handleTermSignal(int signal){
   int status;
   int i;
@@ -103,7 +109,7 @@ void handleTermSignal(int signal){
   exit(EXIT_SUCCESS);
 }
 
+// Upon recieving SIGUSR1 propagates it upwards to init
 void handleSignal(int signal){
   kill(initPid,SIGUSR1);
-  raise(SIGTERM);
 }

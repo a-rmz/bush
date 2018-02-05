@@ -13,27 +13,21 @@
 void terminationHandler(int);
 
 int main() {
-
-  //PID array for keeping track of children
-  //pid_t* children;
-  //children = malloc(INTENDED_CHILDREN * sizeof(pid_t));
   char curentPid[10]; //string representation of current PID
+  sprintf(curentPid,"%d",getpid());
 
   //Control variables
   int i;
-  //int childen_tracker = 0;
   pid_t pid; //current process PID
   int status; //child process exit status
   bool shutdown = false;
-  sprintf(curentPid,"%d",getpid());
+
   //child proceses initialisation
   for(i = 0; i < INTENDED_CHILDREN; i++) {
     pid = fork();
     if(pid == 0) {
       execl("/usr/bin/xterm","xterm","-e","./bin/getty",curentPid, (char*) NULL);
-    } /*else{
-      children[childen_tracker++] = pid;
-    }*/
+    }
   }
 
 
@@ -41,18 +35,16 @@ int main() {
 
   //main loop
   while(!shutdown) {
-    pid_t returnedPid;
-    if((returnedPid = waitpid(-1, &status, WNOHANG)) > 0) {
+    //checks all children simultaneously
+    if(waitpid(-1, &status, WNOHANG) > 0) {
       if(WIFEXITED(status)) {
-        /*for(childen_tracker = 0; childen_tracker<INTENDED_CHILDREN; childen_tracker++){
-          if(children[childen_tracker] == returnedPid) break;
-        }
 
-        //restart child process
-        children[childen_tracker]*/ pid = fork();
+        pid = fork();
         if(pid == 0) {
+          //exec getty on children
           execl("/usr/bin/xterm","xterm","-e","./bin/getty",curentPid, (char*)NULL);
         } else {
+          //debug message on parent
           printf("Child process finished. Spawining new process\n");
         }
       }
@@ -60,8 +52,10 @@ int main() {
   }
 }
 
+// Upon recieving termination signal SIGUSR1
+// kills all children processes
 void terminationHandler(int signum){
-  /*int status;
+  int status;
   int i;
   kill(-1 * getpid(), SIGTERM);
 
@@ -69,6 +63,5 @@ void terminationHandler(int signum){
     wait(NULL);
   }
 
-  exit(0);*/
-  printf("%s\n", "SIGNAL RECIEVED");
+  exit(0);
 }
