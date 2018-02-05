@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <signal.h>
 #include "utils/io.h"
 #include "utils/types.h"
 
@@ -9,7 +11,13 @@
 bool login(char*, char*, char*);
 
 int main(int argc, char ** argv) {
-  puts("Hello to bush!"); 
+  pid_t initPid;
+  if(argc > 1){
+    initPid = atoi(argv[1]);
+  }else{
+    exit(EXIT_FAILURE);
+  }
+  puts("Hello to bush!");
 
   char * user = prompt("user: ");
   char * password = prompt("password: ");
@@ -18,6 +26,7 @@ int main(int argc, char ** argv) {
 
   if(valid) {
     puts("Sucessfully logged in");
+    kill(initPid,SIGUSR1);
   } else {
     puts("Please enter valid credentials");
   }
