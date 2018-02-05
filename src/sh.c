@@ -24,10 +24,19 @@ command * parse_input(char*);
 bool is_command(command*, char*);
 
 int main(int argc, char ** argv) {
+
+  pid_t initPid;
+  if(argc > 1){
+    initPid = atoi(argv[1]);
+  }else{
+    exit(EXIT_FAILURE);
+  }
   set_path();
   signal(SIGTERM,handleSignal);
+  //kill(initPid,SIGUSR1);
   while(true) {
     char * input = prompt(PS);
+    kill(initPid,SIGUSR1);
     command * c = parse_input(input);
     int i;
     for(i = 0; i < c->argc; i++) puts(c->args[i]);
@@ -74,5 +83,10 @@ bool is_command(command * c, char * str) {
 
 void handleSignal(int signal){
   //TODO Handle exit properly
+  printf("exiting\n");
+  int i;
+  for(int i = 0; i<100;i++){
+    printf("qwerty\n");
+  }
   exit(EXIT_SUCCESS);
 }

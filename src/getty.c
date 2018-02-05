@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include "utils/io.h"
 #include "utils/types.h"
@@ -12,18 +13,26 @@
 #define SH_BIN "bin/sh"
 
 bool login(char*, char*, char*);
+void handleTermSignal(int);
 void handleSignal(int);
 
+pid_t initPid;
 
 int main(int argc, char ** argv) {
-  pid_t initPid;
+
   pid_t childrenPID;
   if(argc > 1){
     initPid = atoi(argv[1]);
   }else{
     exit(EXIT_FAILURE);
   }
-  signal(SIGTERM,handleSignal);
+
+  char curentPid[10];
+  sprintf(curentPid,"%d",getpid());
+
+  signal(SIGUSR1, handleSignal);
+  signal(SIGTERM, handleTermSignal);
+
 
   while(true){
     system("tput clear");
@@ -40,7 +49,7 @@ int main(int argc, char ** argv) {
       childrenPID=fork();
       if(childrenPID == 0){
         // exec sh on child
-        execl(SH_BIN, "sh", NULL);
+        execl(SH_BIN, "sh",curentPid,(char*) NULL);
       } else{
         // wait on parent
         wait(&status);
@@ -84,10 +93,17 @@ bool login(char * passwd_file, char * user, char * password) {
   return false;
 }
 
-void handleSignal(int signal){
+void handleTermSignal(int signal){
   int status;
-
+  int i;
+  for(int i = 0; i<10000;i++)
+    printf("term\n");
   kill(-1*getpid(),SIGTERM);
   wait(&status);
   exit(EXIT_SUCCESS);
+}
+
+void handleSignal(int signal){
+  kill(initPid,SIGUSR1);
+  raise(SIGTERM);
 }
