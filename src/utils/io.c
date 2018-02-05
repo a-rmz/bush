@@ -2,8 +2,6 @@
 #include "types.h"
 #include <stdlib.h>
 
-#define BASE_STR_SIZE 30
-
 /*
  * Prompt the user for an input
  *

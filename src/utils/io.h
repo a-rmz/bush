@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#define BASE_STR_SIZE 30
+
 #define puts(x) printf("%s\n", x)
 #define putd(x, y) printf("%s: %d\n", x, y)
 
