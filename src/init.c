@@ -10,19 +10,18 @@
 // Children proceses to be created
 #define INTENDED_CHILDREN 6
 
-//PID array for keeping track of children
-pid_t * children;
-
 void terminationHandler(int);
 
-int main(int argc, char ** argv) {
+int main() {
 
-  children = malloc(INTENDED_CHILDREN * sizeof(pid_t));
+  //PID array for keeping track of children
+  //pid_t* children;
+  //children = malloc(INTENDED_CHILDREN * sizeof(pid_t));
   char* curentPid; //string representation of current PID
 
   //Control variables
   int i;
-  int childen_tracker = 0;
+  //int childen_tracker = 0;
   pid_t pid; //current process PID
   int status; //child process exit status
   bool shutdown = false;
@@ -32,9 +31,9 @@ int main(int argc, char ** argv) {
     pid = fork();
     if(pid == 0) {
       execl("/usr/bin/xterm","xterm","-e","./bin/getty",curentPid, (char*) NULL);
-    } else{
+    } /*else{
       children[childen_tracker++] = pid;
-    }
+    }*/
   }
 
 
@@ -45,12 +44,12 @@ int main(int argc, char ** argv) {
     pid_t returnedPid;
     if(returnedPid = (waitpid(-1, &status, WNOHANG)) > 0) {
       if(WIFEXITED(status)) {
-        for(childen_tracker = 0; childen_tracker<INTENDED_CHILDREN; childen_tracker++){
+        /*for(childen_tracker = 0; childen_tracker<INTENDED_CHILDREN; childen_tracker++){
           if(children[childen_tracker] == returnedPid) break;
         }
 
         //restart child process
-        children[childen_tracker] = fork();
+        children[childen_tracker]*/ pid = fork();
         if(pid == 0) {
           execl("/usr/bin/xterm","xterm","-e","./bin/getty",curentPid, (char*)NULL);
         } else {
@@ -62,10 +61,11 @@ int main(int argc, char ** argv) {
 }
 
 void terminationHandler(int signum){
-  for(childen_tracker = 0; childen_tracker<INTENDED_CHILDREN; childen_tracker++){
-    kill(children[childen_tracker],SIGTERM);
-  }
-  for(childen_tracker = 0; childen_tracker<INTENDED_CHILDREN; childen_tracker++){
+  int status;
+  int i;
+  kill(-1 * getpid(), SIGTERM);
+
+  for(i = 0; i < INTENDED_CHILDREN; i++){
     wait(NULL);
   }
 

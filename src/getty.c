@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/wait.h>
 #include "utils/io.h"
 #include "utils/types.h"
 
@@ -13,10 +14,10 @@
 bool login(char*, char*, char*);
 void handleSignal(int);
 
-pid_t childrenPID;
 
 int main(int argc, char ** argv) {
   pid_t initPid;
+  pid_t childrenPID;
   if(argc > 1){
     initPid = atoi(argv[1]);
   }else{
@@ -86,7 +87,7 @@ bool login(char * passwd_file, char * user, char * password) {
 void handleSignal(int signal){
   int status;
 
-  kill(childrenPID,SIGTERM);
+  kill(-1*getpid(),SIGTERM);
   wait(&status);
   exit(EXIT_SUCCESS);
 }
