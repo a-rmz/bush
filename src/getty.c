@@ -1,23 +1,47 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/wait.h>
 #include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "utils/io.h"
 #include "utils/types.h"
 
-// define the location of the
+// Define the location of the
 // sh executable
 #define SH_BIN "bin/sh"
 
 bool login(char*, char*, char*);
+void handle_term_signal(int);
+void handle_signal(int);
+
+// Parent PID made global for ease of use in the programm
+pid_t initPid;
 
 int main(int argc, char ** argv) {
-  // This will be changed to wait for an
-  // shutdown command
+
+  //Parse parent PID from args
+  //Parent PID must be passed in args because of xterm
+  pid_t children_pid;
+  if(argc > 1) {
+    initPid = atoi(argv[1]);
+  }else{
+    exit(EXIT_FAILURE);
+  }
+
+  //string representation of current PID
+  char curentPid[10];
+  sprintf(curentPid,"%d",getpid());
+
+  // Activates monitors for SIGUSR1 and SIGTERM
+  signal(SIGUSR1, handle_signal);
+  signal(SIGTERM, handle_term_signal);
+
+
   while(true) {
-    system("tput clear"); 
-    puts("Hello to bush!"); 
+    system("tput clear");
+    puts("Hello to bush!");
 
     char * user = prompt("user: ");
     char * password = prompt("password: ");
@@ -26,14 +50,13 @@ int main(int argc, char ** argv) {
 
     if(valid) {
       puts("Sucessfully logged in");
-
       int status;
-      pid_t pid = fork();
-      // exec sh on child
-      if(pid == 0) {
-        execl(SH_BIN, "sh", NULL);
-      // wait on parent
-      } else {
+      children_pid=fork();
+      if(children_pid == 0) {
+        // exec sh on child
+        execl(SH_BIN, "sh",curentPid,(char*) NULL);
+      } else{
+        // wait on parent
         wait(&status);
         puts("Goodbye, human!");
       }
@@ -41,6 +64,8 @@ int main(int argc, char ** argv) {
       puts("Please enter valid credentials");
     }
   }
+
+
   return 0;
 }
 
@@ -71,4 +96,21 @@ bool login(char * passwd_file, char * user, char * password) {
 
   free(line);
   return false;
+}
+
+// Upon recieving SIGTERM kills children processes
+void handle_term_signal(int signal) {
+  int status;
+  int i;
+  for(i = 0; i<10000;i++) {
+    printf("term\n");
+  }
+  kill(-1*getpid(),SIGTERM);
+  wait(&status);
+  exit(EXIT_SUCCESS);
+}
+
+// Upon recieving SIGUSR1 propagates it upwards to init
+void handle_signal(int signal) {
+  kill(initPid,SIGUSR1);
 }

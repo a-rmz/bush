@@ -2,14 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 #include "utils/io.h"
 #include "utils/types.h"
+
+//TODO call kill(init_pid,SIGUSR1); to shutdown everything
+//TODO exit should only kill THIS process
 
 #define ARGC 5
 
 char * PATH;
 // Prompt string
 char * PS = "bush $ ";
+// Parent PID made global for ease of use in the programm
+pid_t init_pid;
 
 typedef struct {
   char * exec;
@@ -18,11 +24,24 @@ typedef struct {
 } command;
 
 void set_path();
+void handle_signal(int);
 command * parse_input(char*);
 bool is_command(command*, char*);
 
 int main(int argc, char ** argv) {
+
+  //Parse parent PID from args
+  //Parent PID must be passed in args because of xterm
+  if(argc > 1) {
+    init_pid = atoi(argv[1]);
+  }else{
+    exit(EXIT_FAILURE);
+  }
   set_path();
+
+  //Activates signal monitor
+  signal(SIGTERM,handle_signal);
+
   while(true) {
     char * input = prompt(PS);
     command * c = parse_input(input);
@@ -67,4 +86,10 @@ command * parse_input(char * input) {
 
 bool is_command(command * c, char * str) {
   return strcmp(c->exec, str) == 0 ? true : false;
+}
+
+//this get called after recieving SIGTERM
+void handle_signal(int signal) {
+  //TODO Handle exit properly
+  exit(EXIT_SUCCESS);
 }
