@@ -1,5 +1,7 @@
 # bush — bearly usable shell 🐻💻
 
+[![Build Status](https://travis-ci.org/a-rmz/bush.svg?branch=master)](https://travis-ci.org/a-rmz/bush)
+
 Soon to be a barely (yes, yes, it's a pun) usable terminal emulator, implemented for our Operating Systems Fundamentals course, but who knows how far can we make it with this…
 
 ## Developing
