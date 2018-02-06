@@ -6,7 +6,7 @@
 #include "utils/io.h"
 #include "utils/types.h"
 
-//TODO call kill(initPid,SIGUSR1); to shutdown everything
+//TODO call kill(init_pid,SIGUSR1); to shutdown everything
 //TODO exit should only kill THIS process
 
 #define ARGC 5
@@ -15,7 +15,7 @@ char * PATH;
 // Prompt string
 char * PS = "bush $ ";
 // Parent PID made global for ease of use in the programm
-pid_t initPid;
+pid_t init_pid;
 
 typedef struct {
   char * exec;
@@ -24,7 +24,7 @@ typedef struct {
 } command;
 
 void set_path();
-void handleSignal(int);
+void handle_signal(int);
 command * parse_input(char*);
 bool is_command(command*, char*);
 
@@ -32,15 +32,15 @@ int main(int argc, char ** argv) {
 
   //Parse parent PID from args
   //Parent PID must be passed in args because of xterm
-  if(argc > 1){
-    initPid = atoi(argv[1]);
+  if(argc > 1) {
+    init_pid = atoi(argv[1]);
   }else{
     exit(EXIT_FAILURE);
   }
   set_path();
 
   //Activates signal monitor
-  signal(SIGTERM,handleSignal);
+  signal(SIGTERM,handle_signal);
 
   while(true) {
     char * input = prompt(PS);
@@ -89,7 +89,7 @@ bool is_command(command * c, char * str) {
 }
 
 //this get called after recieving SIGTERM
-void handleSignal(int signal){
+void handle_signal(int signal) {
   //TODO Handle exit properly
   exit(EXIT_SUCCESS);
 }

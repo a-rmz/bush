@@ -13,8 +13,8 @@
 #define SH_BIN "bin/sh"
 
 bool login(char*, char*, char*);
-void handleTermSignal(int);
-void handleSignal(int);
+void handle_term_signal(int);
+void handle_signal(int);
 
 // Parent PID made global for ease of use in the programm
 pid_t initPid;
@@ -23,8 +23,8 @@ int main(int argc, char ** argv) {
 
   //Parse parent PID from args
   //Parent PID must be passed in args because of xterm
-  pid_t childrenPID;
-  if(argc > 1){
+  pid_t children_pid;
+  if(argc > 1) {
     initPid = atoi(argv[1]);
   }else{
     exit(EXIT_FAILURE);
@@ -35,11 +35,11 @@ int main(int argc, char ** argv) {
   sprintf(curentPid,"%d",getpid());
 
   // Activates monitors for SIGUSR1 and SIGTERM
-  signal(SIGUSR1, handleSignal);
-  signal(SIGTERM, handleTermSignal);
+  signal(SIGUSR1, handle_signal);
+  signal(SIGTERM, handle_term_signal);
 
 
-  while(true){
+  while(true) {
     system("tput clear");
     puts("Hello to bush!");
 
@@ -51,8 +51,8 @@ int main(int argc, char ** argv) {
     if(valid) {
       puts("Sucessfully logged in");
       int status;
-      childrenPID=fork();
-      if(childrenPID == 0){
+      children_pid=fork();
+      if(children_pid == 0) {
         // exec sh on child
         execl(SH_BIN, "sh",curentPid,(char*) NULL);
       } else{
@@ -99,17 +99,18 @@ bool login(char * passwd_file, char * user, char * password) {
 }
 
 // Upon recieving SIGTERM kills children processes
-void handleTermSignal(int signal){
+void handle_term_signal(int signal) {
   int status;
   int i;
-  for(int i = 0; i<10000;i++)
+  for(i = 0; i<10000;i++) {
     printf("term\n");
+  }
   kill(-1*getpid(),SIGTERM);
   wait(&status);
   exit(EXIT_SUCCESS);
 }
 
 // Upon recieving SIGUSR1 propagates it upwards to init
-void handleSignal(int signal){
+void handle_signal(int signal) {
   kill(initPid,SIGUSR1);
 }

@@ -10,11 +10,11 @@
 // Children proceses to be created
 #define INTENDED_CHILDREN 6
 
-void terminationHandler(int);
+void termination_handler(int);
 
 int main() {
-  char curentPid[10]; //string representation of current PID
-  sprintf(curentPid,"%d",getpid());
+  char curent_pid[10]; //string representation of current PID
+  sprintf(curent_pid,"%d",getpid());
 
   //Control variables
   int i;
@@ -26,12 +26,12 @@ int main() {
   for(i = 0; i < INTENDED_CHILDREN; i++) {
     pid = fork();
     if(pid == 0) {
-      execl("/usr/bin/xterm","xterm","-e","./bin/getty",curentPid, (char*) NULL);
+      execl("/usr/bin/xterm","xterm","-e","./bin/getty", curent_pid, (char*) NULL);
     }
   }
 
 
-  signal(SIGUSR1, terminationHandler);
+  signal(SIGUSR1, termination_handler);
 
   //main loop
   while(!shutdown) {
@@ -42,7 +42,7 @@ int main() {
         pid = fork();
         if(pid == 0) {
           //exec getty on children
-          execl("/usr/bin/xterm","xterm","-e","./bin/getty",curentPid, (char*)NULL);
+          execl("/usr/bin/xterm","xterm","-e","./bin/getty", curent_pid, (char*)NULL);
         } else {
           //debug message on parent
           printf("Child process finished. Spawining new process\n");
@@ -54,12 +54,12 @@ int main() {
 
 // Upon recieving termination signal SIGUSR1
 // kills all children processes
-void terminationHandler(int signum){
+void termination_handler(int signum) {
   int status;
   int i;
   kill(-1 * getpid(), SIGTERM);
 
-  for(i = 0; i < INTENDED_CHILDREN; i++){
+  for(i = 0; i < INTENDED_CHILDREN; i++) {
     wait(NULL);
   }
 
