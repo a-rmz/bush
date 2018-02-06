@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/wait.h>
 #include "utils/io.h"
 #include "utils/types.h"
 
@@ -34,20 +35,26 @@ int main(int argc, char ** argv) {
   //Parent PID must be passed in args because of xterm
   if(argc > 1) {
     init_pid = atoi(argv[1]);
-  }else{
+  } else {
     exit(EXIT_FAILURE);
   }
   set_path();
 
   //Activates signal monitor
-  signal(SIGTERM,handle_signal);
+  signal(SIGTERM, handle_signal);
 
   while(true) {
     char * input = prompt(PS);
     command * c = parse_input(input);
-    int i;
-    for(i = 0; i < c->argc; i++) puts(c->args[i]);
-    execv(c->exec, c->args);
+    pid_t  child_pid = fork();
+
+    if(child_pid == 0) {
+      execv(c->exec, c->args);
+      // Wait only if the process must not be executed
+      // in background
+    } else {
+      wait(NULL);
+    }
   }
 
   return 0;
@@ -64,7 +71,9 @@ command * parse_input(char * input) {
     char * command = token;
 
     char ** args = (char **) malloc(sizeof(char*) * ARGC);
+    // the first argument argv[0] must be the program name
     int argcount = 0;
+    args[argcount++] = command;
 
     while(token != NULL) {
       token = strtok(NULL, " ");
