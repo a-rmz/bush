@@ -7,17 +7,28 @@
 #include "utils/io.h"
 #include "utils/types.h"
 
-//TODO call kill(init_pid,SIGUSR1); to shutdown everything
-//TODO exit should only kill THIS process
 
 #define ARGC 5
+#define AMP "&"
 
 char * PATH;
 // Prompt string
 char * PS = "bush $ ";
+
+//default commands
+char * exit_program = "exit";
+char * shutdown = "shutdown";
+
+//flag to check if process should block or not
+bool is_background = false;
+
 // Parent PID made global for ease of use in the programm
 pid_t init_pid;
 
+/*
+ * Struct to handle all the information
+ * related to a command
+ */
 typedef struct {
   char * exec;
   char ** args;
@@ -44,29 +55,57 @@ int main(int argc, char ** argv) {
   //Activates signal monitor
   signal(SIGTERM, handle_signal);
 
+  //good ol' fork variables
+  pid_t child_pid;
+  int status;
+
   while(true) {
     char * input = prompt(PS);
     command * c = parse_input(input);
-    pid_t  child_pid = fork();
+
+    if(is_command(c, exit_program)) {
+      printf("Closing bush\n");
+      exit(0);
+    }
+    if(is_command(c,shutdown)) {
+      kill(init_pid, SIGUSR1);
+      exit(0);
+    }
+
+    child_pid = fork();
 
     if(child_pid == 0) {
+      //execute command on child process
       if(!exec(c)) {
         printf("bush: command not found: %s\n", c->exec);
       }
       // Wait only if the process must not be executed
       // in background
     } else {
-      wait(NULL);
+      //if is_background is set to false blocks sh to wait for children
+      if(is_background == false){
+        wait(&status);
+        continue;
+      }
+
     }
   }
 
   return 0;
 }
 
+// Load the PATH from the parent
 void set_path() {
   PATH = getenv("PATH");
 }
 
+/*
+ * Try to execute the command
+ * If it cannot be executed, tries with every directory
+ * listed under the path
+ *
+ * return: success or failure
+ */
 bool exec(command * c) {
   if(execv(c->exec, c->args) < 0) {
     char * _PATH = (char *) malloc(sizeof(char*) * strlen(PATH));
@@ -86,6 +125,7 @@ bool exec(command * c) {
 }
 
 command * parse_input(char * input) {
+  is_background = false;
   char * token = strtok(input, " ");
   if(token != NULL) {
     command * c = (command *) malloc(sizeof(command *));
@@ -96,15 +136,24 @@ command * parse_input(char * input) {
     int argcount = 0;
     args[argcount++] = command;
 
+    //starts reading args, if none is present saves an empty string for execv
+    token = strtok(NULL," ");
     while(token != NULL) {
+      //if argument is & the flag is set and the argument skipped
+      //else the argument is stored
+      if(strcmp(token, AMP) == 0) {
+        is_background = true;
+      } else {
+        args[argcount++] = token;
+      }
       token = strtok(NULL, " ");
-      args[argcount++] = token;
     }
     if(argcount == 0) {
       args[0] = "";
+      argcount--;
     }
-    argcount--;
 
+    //save data on pointer
     c->exec = command;
     c->args = args;
     c->argc = argcount;
@@ -114,12 +163,17 @@ command * parse_input(char * input) {
   }
 }
 
+/*
+ * Compare a given command with its string representation
+ */
 bool is_command(command * c, char * str) {
   return strcmp(c->exec, str) == 0 ? true : false;
 }
 
-//this get called after recieving SIGTERM
+/*
+ * Handle the receiving of the SIGTERM signal
+ */
 void handle_signal(int signal) {
-  //TODO Handle exit properly
+  //no cleanup needed, we just finish the programm
   exit(EXIT_SUCCESS);
 }
