@@ -28,6 +28,7 @@ void set_path();
 void handle_signal(int);
 command * parse_input(char*);
 bool is_command(command*, char*);
+bool exec(command*);
 
 int main(int argc, char ** argv) {
 
@@ -49,7 +50,9 @@ int main(int argc, char ** argv) {
     pid_t  child_pid = fork();
 
     if(child_pid == 0) {
-      execv(c->exec, c->args);
+      if(!exec(c)) {
+        printf("bush: command not found: %s\n", c->exec);
+      }
       // Wait only if the process must not be executed
       // in background
     } else {
@@ -62,6 +65,24 @@ int main(int argc, char ** argv) {
 
 void set_path() {
   PATH = getenv("PATH");
+}
+
+bool exec(command * c) {
+  if(execv(c->exec, c->args) < 0) {
+    char * _PATH = (char *) malloc(sizeof(char*) * strlen(PATH));
+    strcpy(_PATH, PATH);
+    char * dir = strtok(_PATH, ":");
+
+    while(dir != NULL) {
+      char * full_path  = (char *) malloc(sizeof(char*) * (strlen(c->exec) + strlen(dir)));
+      sprintf(full_path, "%s/%s", dir, c->exec);
+      // If the executable is not in the path
+      // pass to the next directory
+      if(execv(full_path, c->args) > -1) return true;
+      dir = strtok(NULL, ":");
+    }
+  }
+  return false;
 }
 
 command * parse_input(char * input) {
