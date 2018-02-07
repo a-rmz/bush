@@ -14,6 +14,8 @@
 char * PATH;
 // Prompt string
 char * PS = "bush $ ";
+char * exit_program = "exit";
+char * shutdown = "shutdown";
 // Parent PID made global for ease of use in the programm
 pid_t init_pid;
 
@@ -44,6 +46,12 @@ int main(int argc, char ** argv) {
 
   while(true) {
     char * input = prompt(PS);
+    if(strcmp(input,exit_program) == 0){
+      exit(0);
+    }
+    if(strcmp(input,shutdown) == 0){
+      kill(init_pid,SIGUSR1);
+    }
     command * c = parse_input(input);
     int i;
     for(i = 0; i < c->argc; i++) puts(c->args[i]);

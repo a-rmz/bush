@@ -101,10 +101,7 @@ bool login(char * passwd_file, char * user, char * password) {
 // Upon recieving SIGTERM kills children processes
 void handle_term_signal(int signal) {
   int status;
-  int i;
-  for(i = 0; i<10000;i++) {
-    printf("term\n");
-  }
+
   kill(-1*getpid(),SIGTERM);
   wait(&status);
   exit(EXIT_SUCCESS);
