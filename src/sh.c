@@ -6,16 +6,22 @@
 #include "utils/io.h"
 #include "utils/types.h"
 
-//TODO call kill(init_pid,SIGUSR1); to shutdown everything
-//TODO exit should only kill THIS process
 
 #define ARGC 5
 
 char * PATH;
 // Prompt string
 char * PS = "bush $ ";
+
+//default commands
 char * exit_program = "exit";
 char * shutdown = "shutdown";
+
+//helping strings
+char * ampersend = "&";
+
+//usefull little flag
+bool is_background = false;
 // Parent PID made global for ease of use in the programm
 pid_t init_pid;
 
@@ -48,6 +54,7 @@ int main(int argc, char ** argv) {
     char * input = prompt(PS);
     command * c = parse_input(input);
     if(is_command(c,exit_program)){
+      printf("exiting\n");
       exit(0);
     }
     if(is_command(c,shutdown)){
@@ -67,6 +74,7 @@ void set_path() {
 }
 
 command * parse_input(char * input) {
+  is_background = false;
   char * token = strtok(input, " ");
   if(token != NULL) {
     command * c = (command *) malloc(sizeof(command *));
@@ -74,16 +82,19 @@ command * parse_input(char * input) {
 
     char ** args = (char **) malloc(sizeof(char*) * ARGC);
     int argcount = 0;
-
     while(token != NULL) {
       token = strtok(NULL, " ");
-      args[argcount++] = token;
+      /*if(strcmp(token,ampersend) != 0){*/
+        args[argcount++] = token;
+      /*} else{
+        is_background = true;
+      }*/
     }
     if(argcount == 0) {
       args[0] = "";
     }
     argcount--;
-
+    //puts(args[argcount]);
     c->exec = command;
     c->args = args;
     c->argc = argcount;
