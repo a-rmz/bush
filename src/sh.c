@@ -82,19 +82,20 @@ command * parse_input(char * input) {
 
     char ** args = (char **) malloc(sizeof(char*) * ARGC);
     int argcount = 0;
+    token = strtok(NULL," ");
     while(token != NULL) {
-      token = strtok(NULL, " ");
-      /*if(strcmp(token,ampersend) != 0){*/
-        args[argcount++] = token;
-      /*} else{
+      if(strcmp(token,ampersend) == 0){
         is_background = true;
-      }*/
+      } else{
+        args[argcount++] = token;
+      }
+      token = strtok(NULL, " ");
     }
     if(argcount == 0) {
       args[0] = "";
     }
     argcount--;
-    //puts(args[argcount]);
+    printf("%d\n",argcount);
     c->exec = command;
     c->args = args;
     c->argc = argcount;
