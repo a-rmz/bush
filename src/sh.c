@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/wait.h>
 #include "utils/io.h"
 #include "utils/types.h"
 
@@ -50,6 +51,9 @@ int main(int argc, char ** argv) {
   //Activates signal monitor
   signal(SIGTERM,handle_signal);
 
+  pid_t pid;
+  int status;
+
   while(true) {
     char * input = prompt(PS);
     command * c = parse_input(input);
@@ -62,8 +66,18 @@ int main(int argc, char ** argv) {
       exit(0);
     }
     int i;
-    for(i = 0; i < c->argc; i++) puts(c->args[i]);
-    execv(c->exec, c->args);
+    //for(i = 0; i < c->argc; i++) puts(c->args[i]); //Debug printer of args
+
+    pid = fork();
+    if(pid == 0){
+      execv(c->exec, c->args);
+    } else{
+      if(is_background == false){
+        printf("waiting\n");
+        wait(&status);
+        printf("continue\n");
+      }
+    }
   }
 
   return 0;
@@ -93,9 +107,8 @@ command * parse_input(char * input) {
     }
     if(argcount == 0) {
       args[0] = "";
+      argcount--;
     }
-    argcount--;
-    printf("%d\n",argcount);
     c->exec = command;
     c->args = args;
     c->argc = argcount;
