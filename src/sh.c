@@ -71,11 +71,11 @@ int main(int argc, char ** argv) {
     pid = fork();
     if(pid == 0){
       execv(c->exec, c->args);
+      break;
     } else{
       if(is_background == false){
-        printf("waiting\n");
         wait(&status);
-        printf("continue\n");
+        continue;
       }
     }
   }
