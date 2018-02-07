@@ -120,7 +120,6 @@ bool exec(command * c) {
       if(execv(full_path, c->args) > -1) return true;
       dir = strtok(NULL, ":");
     }
-    free(_PATH);
   }
   return false;
 }
