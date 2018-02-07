@@ -25,6 +25,10 @@ bool is_background = false;
 // Parent PID made global for ease of use in the programm
 pid_t init_pid;
 
+/*
+ * Struct to handle all the information
+ * related to a command
+ */
 typedef struct {
   char * exec;
   char ** args;
@@ -35,6 +39,7 @@ void set_path();
 void handle_signal(int);
 command * parse_input(char*);
 bool is_command(command*, char*);
+bool exec(command*);
 
 int main(int argc, char ** argv) {
 
@@ -48,17 +53,18 @@ int main(int argc, char ** argv) {
   set_path();
 
   //Activates signal monitor
-  signal(SIGTERM,handle_signal);
+  signal(SIGTERM, handle_signal);
 
   //good ol' fork variables
-  pid_t pid;
+  pid_t child_pid;
   int status;
 
   while(true) {
     char * input = prompt(PS);
     command * c = parse_input(input);
+
     if(is_command(c, exit_program)) {
-      printf("exiting\n");
+      printf("Closing bush\n");
       exit(0);
     }
     if(is_command(c,shutdown)) {
@@ -66,24 +72,57 @@ int main(int argc, char ** argv) {
       exit(0);
     }
 
-    pid = fork();
-    if(pid == 0){
+    child_pid = fork();
+
+    if(child_pid == 0) {
       //execute command on child process
-      execv(c->exec, c->args);
-      break; //in case of some kind of error prevents double prompt
-    } else{
+      if(!exec(c)) {
+        printf("bush: command not found: %s\n", c->exec);
+      }
+      // Wait only if the process must not be executed
+      // in background
+    } else {
       //if is_background is set to false blocks sh to wait for children
       if(is_background == false){
         wait(&status);
         continue;
       }
+
     }
   }
+
   return 0;
 }
 
+// Load the PATH from the parent
 void set_path() {
   PATH = getenv("PATH");
+}
+
+/*
+ * Try to execute the command
+ * If it cannot be executed, tries with every directory
+ * listed under the path
+ *
+ * return: success or failure
+ */
+bool exec(command * c) {
+  if(execv(c->exec, c->args) < 0) {
+    char * _PATH = (char *) malloc(sizeof(char*) * strlen(PATH));
+    strcpy(_PATH, PATH);
+    char * dir = strtok(_PATH, ":");
+
+    while(dir != NULL) {
+      char * full_path  = (char *) malloc(sizeof(char*) * (strlen(c->exec) + strlen(dir)));
+      sprintf(full_path, "%s/%s", dir, c->exec);
+      // If the executable is not in the path
+      // pass to the next directory
+      if(execv(full_path, c->args) > -1) return true;
+      dir = strtok(NULL, ":");
+    }
+    free(_PATH);
+  }
+  return false;
 }
 
 command * parse_input(char * input) {
@@ -94,7 +133,9 @@ command * parse_input(char * input) {
     char * command = token;
 
     char ** args = (char **) malloc(sizeof(char*) * ARGC);
+    // the first argument argv[0] must be the program name
     int argcount = 0;
+    args[argcount++] = command;
 
     //starts reading args, if none is present saves an empty string for execv
     token = strtok(NULL," ");
@@ -123,12 +164,16 @@ command * parse_input(char * input) {
   }
 }
 
-//confirms if command is the same as string passed
+/*
+ * Compare a given command with its string representation
+ */
 bool is_command(command * c, char * str) {
   return strcmp(c->exec, str) == 0 ? true : false;
 }
 
-//this gets called after recieving SIGTERM
+/*
+ * Handle the receiving of the SIGTERM signal
+ */
 void handle_signal(int signal) {
   //no cleanup needed, we just finish the programm
   exit(EXIT_SUCCESS);
