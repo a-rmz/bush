@@ -9,6 +9,7 @@
 
 
 #define ARGC 5
+#define AMP "&"
 
 char * PATH;
 // Prompt string
@@ -18,10 +19,7 @@ char * PS = "bush $ ";
 char * exit_program = "exit";
 char * shutdown = "shutdown";
 
-//helping strings
-char * ampersend = "&";
-
-//usefull little flag to check if process should block or not
+//flag to check if process should block or not
 bool is_background = false;
 
 // Parent PID made global for ease of use in the programm
@@ -44,7 +42,7 @@ int main(int argc, char ** argv) {
   //Parent PID must be passed in args because of xterm
   if(argc > 1) {
     init_pid = atoi(argv[1]);
-  }else{
+  } else {
     exit(EXIT_FAILURE);
   }
   set_path();
@@ -59,17 +57,14 @@ int main(int argc, char ** argv) {
   while(true) {
     char * input = prompt(PS);
     command * c = parse_input(input);
-    if(is_command(c,exit_program)){
+    if(is_command(c, exit_program)) {
       printf("exiting\n");
       exit(0);
     }
-    if(is_command(c,shutdown)){
-      kill(init_pid,SIGUSR1);
+    if(is_command(c,shutdown)) {
+      kill(init_pid, SIGUSR1);
       exit(0);
     }
-    int i;
-    //Debug printer of args left intentionally just in case
-    //for(i = 0; i < c->argc; i++) puts(c->args[i]);
 
     pid = fork();
     if(pid == 0){
@@ -104,10 +99,11 @@ command * parse_input(char * input) {
     //starts reading args, if none is present saves an empty string for execv
     token = strtok(NULL," ");
     while(token != NULL) {
-      //if argument is & the flag is set and the argument skipped, else the argument is stored
-      if(strcmp(token,ampersend) == 0){
+      //if argument is & the flag is set and the argument skipped
+      //else the argument is stored
+      if(strcmp(token, AMP) == 0) {
         is_background = true;
-      } else{
+      } else {
         args[argcount++] = token;
       }
       token = strtok(NULL, " ");
@@ -116,7 +112,8 @@ command * parse_input(char * input) {
       args[0] = "";
       argcount--;
     }
-    //saves data on pointer
+
+    //save data on pointer
     c->exec = command;
     c->args = args;
     c->argc = argcount;
@@ -131,7 +128,7 @@ bool is_command(command * c, char * str) {
   return strcmp(c->exec, str) == 0 ? true : false;
 }
 
-//this get called after recieving SIGTERM
+//this gets called after recieving SIGTERM
 void handle_signal(int signal) {
   //no cleanup needed, we just finish the programm
   exit(EXIT_SUCCESS);
