@@ -21,8 +21,9 @@ char * shutdown = "shutdown";
 //helping strings
 char * ampersend = "&";
 
-//usefull little flag
+//usefull little flag to check if process should block or not
 bool is_background = false;
+
 // Parent PID made global for ease of use in the programm
 pid_t init_pid;
 
@@ -51,6 +52,7 @@ int main(int argc, char ** argv) {
   //Activates signal monitor
   signal(SIGTERM,handle_signal);
 
+  //good ol' fork variables
   pid_t pid;
   int status;
 
@@ -70,16 +72,17 @@ int main(int argc, char ** argv) {
 
     pid = fork();
     if(pid == 0){
+      //execute command on child process
       execv(c->exec, c->args);
-      break;
+      break; //in case of some kind of error prevents double prompt
     } else{
+      //if is_background is set to false blocks sh to wait for children
       if(is_background == false){
         wait(&status);
         continue;
       }
     }
   }
-
   return 0;
 }
 
@@ -96,8 +99,11 @@ command * parse_input(char * input) {
 
     char ** args = (char **) malloc(sizeof(char*) * ARGC);
     int argcount = 0;
+
+    //starts reading args, if none is present saves an empty string for execv
     token = strtok(NULL," ");
     while(token != NULL) {
+      //if argument is & the flag is set and the argument skipped, else the argument is stored
       if(strcmp(token,ampersend) == 0){
         is_background = true;
       } else{
@@ -109,6 +115,7 @@ command * parse_input(char * input) {
       args[0] = "";
       argcount--;
     }
+    //saves data on pointer
     c->exec = command;
     c->args = args;
     c->argc = argcount;
@@ -118,12 +125,13 @@ command * parse_input(char * input) {
   }
 }
 
+//confirms if command is the same as string passed
 bool is_command(command * c, char * str) {
   return strcmp(c->exec, str) == 0 ? true : false;
 }
 
 //this get called after recieving SIGTERM
 void handle_signal(int signal) {
-  //TODO Handle exit properly
+  //no cleanup needed, we just finish the programm
   exit(EXIT_SUCCESS);
 }
