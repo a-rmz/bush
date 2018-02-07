@@ -68,7 +68,8 @@ int main(int argc, char ** argv) {
       exit(0);
     }
     int i;
-    //for(i = 0; i < c->argc; i++) puts(c->args[i]); //Debug printer of args
+    //Debug printer of args left intentionally just in case
+    //for(i = 0; i < c->argc; i++) puts(c->args[i]);
 
     pid = fork();
     if(pid == 0){
