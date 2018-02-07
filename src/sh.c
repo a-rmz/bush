@@ -46,13 +46,14 @@ int main(int argc, char ** argv) {
 
   while(true) {
     char * input = prompt(PS);
-    if(strcmp(input,exit_program) == 0){
+    command * c = parse_input(input);
+    if(is_command(c,exit_program)){
       exit(0);
     }
-    if(strcmp(input,shutdown) == 0){
+    if(is_command(c,shutdown)){
       kill(init_pid,SIGUSR1);
+      exit(0);
     }
-    command * c = parse_input(input);
     int i;
     for(i = 0; i < c->argc; i++) puts(c->args[i]);
     execv(c->exec, c->args);
